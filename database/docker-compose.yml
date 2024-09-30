@@ -1,0 +1,42 @@
+version: '3.7'
+
+services:
+ kudesys_db:
+  env_file: .env
+  image: mariadb
+  container_name: database-prod
+  restart: unless-stopped #Se reinicia por errores y no por stop manual.
+  environment:
+    MYSQL_ROOT_PASSWORD: ${DBPASS}
+    MYSQL_PASSWORD: ${DBPASS}
+    MYSQL_USER: ${DBUSER}
+  volumes:
+  - database-prod:/var/lib/mysq  
+  networks:
+  - production-net
+
+ phpmyadmin:
+  image: phpmyadmin/phpmyadmin
+  container_name: phpmyadmin-prod
+  restart: unless-stopped
+  environment:
+    PMA_HOST: database-prod
+    PMA_PORT: 3306
+    PMA_ARBITRARY: 1
+    #UPLOAD_LIMIT: 100M  # Aumentar límite de carga
+  ports:
+    - 8080:80
+  volumes:
+    - ./php.ini:/usr/local/etc/php/conf.d/uploads.ini  # Configuración personalizada de PHPMYADMIN
+  networks:
+  - production-net
+
+volumes:
+ database-prod:
+   name: database-prod
+   external: true
+
+networks:
+  production-net:
+    name: production-net
+    driver: bridge
